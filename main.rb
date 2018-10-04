@@ -1,49 +1,51 @@
-# bla-bla-bla
+# The ancient mysterious Natarian riddle
 FIGURES = [ :spider, :human, :clock, :brush, :pouch, :fish, :hands, :cells ]
-MAX_NUM = 9
+MAX_DIGIT = 9
+# символы должны быть в обратном порядке: [<единицы>, <десятки>, <сотни>, ...]
+NATAR_NUMBERS = [[:spider, :human, :spider], [:brush, :spider, :clock], [:human, :pouch, :pouch],
+                 [:clock, :hands, :fish], [:human, :human, :human], [:human, :pouch, :cells],
+                 [:spider, :brush, :pouch], [:spider, :brush, :cells], [:clock, :clock, :fish]]
 
-def lookup(numbers = nil, fig = FIGURES[0])
-  n = numbers.nil? ? { spider: nil, human: nil, clock: nil, brush: nil, pouch: nil, fish: nil, hands: nil, cells: nil } : numbers
-  i = FIGURES.index(fig)
-  (MAX_NUM+1).times do |num|
-    has_num = n.select { |key,val| FIGURES.index(key) < FIGURES.index(fig) and val == num }
-    # puts has_num
-    if has_num.empty?
-      n[fig] = num
-      if i == FIGURES.size - 1
-        # puts "test: #{n}"
-        n1 = n[:spider]*100 + n[:human]*10 + n[:spider]
-        n2 = n[:clock]*100 + n[:spider]*10 + n[:brush]
-        n3 = n[:pouch]*100 + n[:pouch]*10 + n[:human]
-        # puts "#{'%03d'%n1} #{'%03d'%n2} #{'%03d'%n3}"
+def lookup(figures_map = {}, figure = FIGURES[0])
+  (MAX_DIGIT+1).times do |digit|
+    has_digit = figures_map.select { |key,val| FIGURES.index(key) < FIGURES.index(figure) and val == digit }
+    # p has_digit
+    if has_digit.empty?
+      figures_map[figure] = digit
+      if figure == FIGURES.last
+        check = true
 
-        n4 = n[:fish]*100 + n[:hands]*10 + n[:clock]
-        n5 = n[:human]*100 + n[:human]*10 + n[:human]
-        n6 = n[:cells]*100 + n[:pouch]*10 + n[:human]
-        # puts "#{'%03d'%n4} #{'%03d'%n5} #{'%03d'%n6}"
+        num = NATAR_NUMBERS.map { |nat_num| map_to_number(figures_map, nat_num) }
 
-        n7 = n[:pouch]*100 + n[:brush]*10 + n[:spider]
-        n8 = n[:cells]*100 + n[:brush]*10 + n[:spider]
-        n9 = n[:fish]*100 + n[:clock]*10 + n[:clock]
-        # puts "#{'%03d'%n7} #{'%03d'%n8} #{'%03d'%n9}"
+        check &&= ((num[0] - num[1]) == num[2])
+        check &&= ((num[3] + num[4]) == num[5])
+        check &&= ((num[6] - num[7]) == num[8])
 
-        c1 = ((n1 - n2) == n3)
-        c2 = ((n4 + n5) == n6)
-        c3 = ((n7 - n8) == n9)
+        check &&= ((num[0] - num[3]) == num[6])
+        check &&= ((num[1] + num[4]) == num[7])
+        check &&= ((num[2] - num[5]) == num[8])
 
-        c4 = ((n1 - n4) == n7)
-        c5 = ((n2 + n5) == n8)
-        c6 = ((n3 - n6) == n9)
-
-        if c1 and c2 and c3 and c4 and c5 and c6
-          puts "bingo: #{n}"
+        if check
+          puts "bingo: #{figures_map}"
         end
       else
-        next_fig = FIGURES[FIGURES.index(fig)+1]
-        lookup(n, next_fig)
+        next_figure = FIGURES[FIGURES.index(figure)+1]
+        lookup(figures_map, next_figure)
       end
     end
   end
+end
+
+# передаем символы в обратном порядке: [<единицы>, <сотни>, <тысячи>, ...]
+def map_to_number(figures_map, figures)
+  number = 0
+  dec = 1
+  figures.each do |figure|
+    # p figure, figures_map
+    number += figures_map[figure]*dec
+    dec *= 10
+  end
+  number
 end
 
 lookup()
